@@ -102,6 +102,10 @@ try {
         dotnet tool restore
         Assert-LastExitCode 'dotnet tool restore'
 
+        # The startup project must be restored too (a fresh clone has no Host assets file).
+        dotnet restore src/Host/Host.csproj
+        Assert-LastExitCode 'dotnet restore Host'
+
         $setConnection = [string]::IsNullOrEmpty($env:ConnectionStrings__Default)
         if ($setConnection) {
             $env:ConnectionStrings__Default = 'Host=localhost;Database=design'
