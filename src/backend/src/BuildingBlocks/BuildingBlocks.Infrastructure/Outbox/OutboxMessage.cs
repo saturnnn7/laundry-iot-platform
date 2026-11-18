@@ -5,6 +5,8 @@ namespace Laundry.BuildingBlocks.Infrastructure.Outbox;
 
 public sealed class OutboxMessage
 {
+    private const int MaxErrorLength = 2000;
+
     private OutboxMessage()
     {
         Type = string.Empty;
@@ -43,6 +45,29 @@ public sealed class OutboxMessage
             OccurredAtUtc = integrationEvent.OccurredAtUtc.ToUniversalTime(),
             NextAttemptAtUtc = utcNow.ToUniversalTime(),
         };
+    }
+
+    public void MarkProcessed(DateTimeOffset utcNow)
+    {
+        ProcessedAtUtc = utcNow.ToUniversalTime();
+        LastError = null;
+    }
+
+    public void MarkFailed(string error, DateTimeOffset utcNow, OutboxOptions options)
+    {
+        ArgumentNullException.ThrowIfNull(error);
+        ArgumentNullException.ThrowIfNull(options);
+
+        var now = utcNow.ToUniversalTime();
+
+        Attempts++;
+        LastError = error.Length > MaxErrorLength ? error[..MaxErrorLength] : error;
+        NextAttemptAtUtc = now + OutboxRetryPolicy.Delay(Attempts, options.MaxRetryDelay);
+
+        if (Attempts >= options.MaxAttempts)
+        {
+            DeadAtUtc = now;
+        }
     }
 
     public IIntegrationEvent Deserialize()
