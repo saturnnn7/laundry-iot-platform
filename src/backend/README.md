@@ -6,6 +6,9 @@ Prerequisites: .NET 10 SDK (see global.json), Docker for the Testcontainers test
 
 Build: `dotnet build`
 Test: `dotnet test`
+
+The integration tests start a PostgreSQL container (Testcontainers), so they need a running Docker daemon and pull `postgres:17-alpine` on the first run. Without Docker they fail, they are not skipped.
+
 Run (set the connection string and the JWT signing key, see below; the outbox can be switched off for a local check):
 
     ConnectionStrings__Default="Host=localhost;Database=laundry;Username=postgres;Password=..." \
