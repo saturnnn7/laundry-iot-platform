@@ -2,6 +2,8 @@ namespace Laundry.BuildingBlocks.Infrastructure.Outbox;
 
 public sealed class OutboxOptions
 {
+    public bool Enabled { get; set; } = true;
+
     public TimeSpan PollInterval { get; set; } = TimeSpan.FromSeconds(1);
 
     public int BatchSize { get; set; } = 50;

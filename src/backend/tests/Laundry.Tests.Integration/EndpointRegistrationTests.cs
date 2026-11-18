@@ -1,14 +1,13 @@
 using System.Net;
 using Laundry.BuildingBlocks.Api;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace Laundry.Tests.Integration;
 
-public class EndpointRegistrationTests(WebApplicationFactory<Program> factory)
-    : IClassFixture<WebApplicationFactory<Program>>
+public class EndpointRegistrationTests(ApiFactory factory)
+    : IClassFixture<ApiFactory>
 {
     [Fact]
     public async Task RegisteredEndpointIsMappedUnderApiV1()

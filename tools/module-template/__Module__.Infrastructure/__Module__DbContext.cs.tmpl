@@ -1,0 +1,14 @@
+using Laundry.BuildingBlocks.Infrastructure.Persistence;
+using Laundry.__Module__.Application;
+using Microsoft.EntityFrameworkCore;
+
+namespace Laundry.__Module__.Infrastructure;
+
+public sealed class __Module__DbContext(
+    DbContextOptions<__Module__DbContext> options,
+    ModuleContextServices services) : ModuleDbContext(options, services), I__Module__UnitOfWork
+{
+    public const string SchemaName = "__module__";
+
+    protected override string Schema => SchemaName;
+}

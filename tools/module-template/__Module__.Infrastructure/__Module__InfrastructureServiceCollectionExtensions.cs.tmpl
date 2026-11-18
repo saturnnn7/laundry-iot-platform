@@ -1,0 +1,16 @@
+using Laundry.BuildingBlocks.Infrastructure.DependencyInjection;
+using Laundry.__Module__.Application;
+using Laundry.__Module__.Infrastructure;
+
+namespace Microsoft.Extensions.DependencyInjection;
+
+public static class __Module__InfrastructureServiceCollectionExtensions
+{
+    public static IServiceCollection Add__Module__Infrastructure(this IServiceCollection services, string connectionString)
+    {
+        services.AddModuleDbContext<__Module__DbContext>(connectionString, __Module__DbContext.SchemaName);
+        services.AddScoped<I__Module__UnitOfWork>(sp => sp.GetRequiredService<__Module__DbContext>());
+
+        return services;
+    }
+}

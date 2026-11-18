@@ -1,0 +1,13 @@
+using Laundry.__Module__.Application.Features.Ping;
+
+namespace Microsoft.Extensions.DependencyInjection;
+
+public static class __Module__ApplicationServiceCollectionExtensions
+{
+    public static IServiceCollection Add__Module__Application(this IServiceCollection services)
+    {
+        services.AddScoped<PingHandler>();
+
+        return services;
+    }
+}

@@ -18,3 +18,6 @@ indent_size = 2
 # Names required by the project conventions (Error, I*EventHandler).
 dotnet_diagnostic.CA1716.severity = none
 dotnet_diagnostic.CA1711.severity = none
+
+[**/Migrations/*.cs]
+generated_code = true

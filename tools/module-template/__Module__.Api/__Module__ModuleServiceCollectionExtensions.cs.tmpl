@@ -1,0 +1,18 @@
+using Laundry.BuildingBlocks.Api;
+using Laundry.__Module__.Api.Features.Ping;
+
+namespace Microsoft.Extensions.DependencyInjection;
+
+public static class __Module__ModuleServiceCollectionExtensions
+{
+    public static IServiceCollection Add__Module__Module(this IServiceCollection services, string? connectionString)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(connectionString);
+
+        services.Add__Module__Application();
+        services.Add__Module__Infrastructure(connectionString);
+        services.AddEndpoints(typeof(PingEndpoint).Assembly);
+
+        return services;
+    }
+}

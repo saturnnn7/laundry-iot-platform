@@ -4,6 +4,9 @@ namespace Laundry.BuildingBlocks.Infrastructure.Outbox;
 
 internal static partial class OutboxLog
 {
+    [LoggerMessage(Level = LogLevel.Information, Message = "Outbox processor is disabled for {Module}")]
+    public static partial void Disabled(ILogger logger, string module);
+
     [LoggerMessage(Level = LogLevel.Error, Message = "Outbox batch failed for {Module}")]
     public static partial void BatchFailed(ILogger logger, Exception exception, string module);
 

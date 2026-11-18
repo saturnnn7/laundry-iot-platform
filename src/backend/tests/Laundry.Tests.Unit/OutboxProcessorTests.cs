@@ -187,4 +187,18 @@ public class OutboxProcessorTests
         Assert.All(fixture.Probe.HandlerContexts, c => Assert.NotSame(processorContext, c));
         Assert.NotSame(fixture.Probe.HandlerContexts[0], fixture.Probe.HandlerContexts[1]);
     }
+
+    [Fact]
+    public async Task DisabledProcessorReturnsImmediatelyAndHandlesNothing()
+    {
+        var fixture = new Fixture(new OutboxOptions { Enabled = false });
+        await fixture.SeedAsync("a", Start);
+
+        await fixture.Processor.StartAsync(TestContext.Current.CancellationToken);
+
+        await fixture.Processor.ExecuteTask!.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
+
+        await fixture.Processor.StopAsync(TestContext.Current.CancellationToken);
+        Assert.Empty(fixture.Probe.Handled);
+    }
 }

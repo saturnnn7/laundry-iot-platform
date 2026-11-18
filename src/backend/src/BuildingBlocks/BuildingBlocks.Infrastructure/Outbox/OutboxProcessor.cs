@@ -19,6 +19,12 @@ public sealed class OutboxProcessor<TContext>(
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        if (!options.Value.Enabled)
+        {
+            OutboxLog.Disabled(logger, Module);
+            return;
+        }
+
         using var timer = new PeriodicTimer(options.Value.PollInterval);
 
         try
