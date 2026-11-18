@@ -9,6 +9,10 @@ Test: `dotnet test`
 
 The integration tests start a PostgreSQL container (Testcontainers), so they need a running Docker daemon and pull `postgres:17-alpine` on the first run. Without Docker they fail, they are not skipped.
 
+CI (`.github/workflows/backend.yml`) runs on every pull request: build and tests, the NuGet license check, a smoke test of the module script, and a smoke test of the Docker image.
+Run the license check locally from the repo root: `pwsh ./tools/check-licenses.ps1`
+Packages with a license that is not allowed need an entry in `tools/license-exceptions.txt`.
+
 Run (set the connection string and the JWT signing key, see below; the outbox can be switched off for a local check):
 
     ConnectionStrings__Default="Host=localhost;Database=laundry;Username=postgres;Password=..." \
