@@ -6,7 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Laundry.Tests.Integration;
 
-public sealed class ApiFactory : WebApplicationFactory<Program>
+public class ApiFactory : WebApplicationFactory<Program>
 {
     public const string SigningKey = "test-signing-key-0123456789-abcdefghijklmnop";
     public const string OtherSigningKey = "another-signing-key-0123456789-abcdefghijklmn";
@@ -22,11 +22,16 @@ public sealed class ApiFactory : WebApplicationFactory<Program>
     {
         ArgumentNullException.ThrowIfNull(builder);
 
-        builder.UseSetting("ConnectionStrings:Default", "Host=localhost;Database=test");
-        builder.UseSetting("Outbox:Enabled", "false");
-        builder.UseSetting("Database:MigrateOnStartup", "false");
+        ConfigureDatabaseSettings(builder);
         builder.UseSetting("Jwt:SigningKey", SigningKey);
         builder.UseSetting("Jwt:Issuer", Issuer);
         builder.UseSetting("Jwt:Audience", Audience);
+    }
+
+    protected virtual void ConfigureDatabaseSettings(IWebHostBuilder builder)
+    {
+        builder.UseSetting("ConnectionStrings:Default", "Host=localhost;Database=test");
+        builder.UseSetting("Outbox:Enabled", "false");
+        builder.UseSetting("Database:MigrateOnStartup", "false");
     }
 }
