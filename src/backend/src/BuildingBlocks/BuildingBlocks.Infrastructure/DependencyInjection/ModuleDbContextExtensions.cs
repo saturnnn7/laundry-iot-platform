@@ -4,6 +4,7 @@ using Laundry.BuildingBlocks.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Options;
 
 namespace Laundry.BuildingBlocks.Infrastructure.DependencyInjection;
 
@@ -21,7 +22,8 @@ public static class ModuleDbContextExtensions
         services.TryAddScoped<IDomainEventDispatcher, DomainEventDispatcher>();
         services.TryAddScoped<ModuleContextServices>();
         services.TryAddSingleton<IntegrationEventPublisher>();
-        services.AddOptions<OutboxOptions>();
+        services.AddOptions<OutboxOptions>().ValidateOnStart();
+        services.TryAddEnumerable(ServiceDescriptor.Singleton<IValidateOptions<OutboxOptions>, OutboxOptionsValidator>());
 
         services.AddDbContext<TContext>(options => options.UseNpgsql(
             connectionString,
@@ -30,6 +32,7 @@ public static class ModuleDbContextExtensions
         services.AddSingleton(new ModuleContextDescriptor(typeof(TContext)));
 
         services.AddHostedService<OutboxProcessor<TContext>>();
+        services.AddHostedService<OutboxCleanupService<TContext>>();
 
         return services;
     }

@@ -11,5 +11,6 @@
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Laundry.Tests.Unit" />
+    <InternalsVisibleTo Include="Laundry.Tests.Integration" />
   </ItemGroup>
 </Project>

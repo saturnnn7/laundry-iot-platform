@@ -4,6 +4,7 @@ using Laundry.BuildingBlocks.Infrastructure.DependencyInjection;
 using Laundry.BuildingBlocks.Infrastructure.Outbox;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Npgsql;
 using Xunit;
 
@@ -121,6 +122,69 @@ public class PostgresIntegrationTests(PostgresFixture fixture)
         var row = await WaitForProcessedRowAsync(integrationEvent.EventId);
         Assert.Equal(1, row.Attempts);
         Assert.Null(row.LastError);
+    }
+
+    [Fact]
+    public async Task CleanupPassDeletesOnlyOldProcessedRows()
+    {
+        var now = DateTimeOffset.UtcNow;
+        var processedOld = NewRow(m => m.MarkProcessed(now - TimeSpan.FromDays(8)));
+        var processedRecent = NewRow(m => m.MarkProcessed(now - TimeSpan.FromDays(1)));
+        var unprocessedOld = NewRow(ScheduleFarAhead);
+        var deadOld = NewRow(m => m.MarkFailed("boom", now - TimeSpan.FromDays(9), new OutboxOptions { MaxAttempts = 1 }));
+        await InsertAsync(processedOld, processedRecent, unprocessedOld, deadOld);
+
+        var deleted = await CleanupService().RunOnceAsync(OutboxCleanupService<BookingDbContext>.DefaultBatchSize, Ct);
+
+        Assert.Equal(1, deleted);
+        Assert.Null(await FindRowAsync(processedOld.Id));
+        Assert.NotNull(await FindRowAsync(processedRecent.Id));
+        Assert.NotNull(await FindRowAsync(unprocessedOld.Id));
+        Assert.NotNull(await FindRowAsync(deadOld.Id));
+    }
+
+    [Fact]
+    public async Task CleanupPassDeletesAllOldRowsAcrossBatches()
+    {
+        var old = DateTimeOffset.UtcNow - TimeSpan.FromDays(10);
+        var rows = Enumerable.Range(0, 5).Select(_ => NewRow(m => m.MarkProcessed(old))).ToArray();
+        await InsertAsync(rows);
+
+        var deleted = await CleanupService().RunOnceAsync(batchSize: 2, Ct);
+
+        Assert.Equal(5, deleted);
+        foreach (var row in rows)
+        {
+            Assert.Null(await FindRowAsync(row.Id));
+        }
+    }
+
+    private OutboxCleanupService<BookingDbContext> CleanupService() =>
+        fixture.Factory.Services.GetServices<IHostedService>().OfType<OutboxCleanupService<BookingDbContext>>().Single();
+
+    // Pushes the next attempt far ahead so the poller leaves the row alone: not processed, not dead.
+    private static void ScheduleFarAhead(OutboxMessage message)
+    {
+        var options = new OutboxOptions { MaxAttempts = 100, MaxRetryDelay = TimeSpan.FromDays(1) };
+        for (var i = 0; i < 20; i++)
+        {
+            message.MarkFailed("later", DateTimeOffset.UtcNow - TimeSpan.FromDays(9), options);
+        }
+    }
+
+    private static OutboxMessage NewRow(Action<OutboxMessage> configure)
+    {
+        var message = OutboxMessage.Create(NewEvent("cleanup"), DateTimeOffset.UtcNow - TimeSpan.FromDays(9));
+        configure(message);
+        return message;
+    }
+
+    private async Task InsertAsync(params OutboxMessage[] messages)
+    {
+        await using var scope = fixture.Factory.Services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<BookingDbContext>();
+        db.OutboxMessages.AddRange(messages);
+        await db.SaveChangesAsync(Ct);
     }
 
     private static TestIntegrationEvent NewEvent(string note) =>

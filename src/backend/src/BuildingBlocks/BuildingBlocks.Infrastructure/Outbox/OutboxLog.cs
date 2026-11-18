@@ -15,4 +15,13 @@ internal static partial class OutboxLog
 
     [LoggerMessage(Level = LogLevel.Warning, Message = "Outbox message {MessageId} in {Module} failed, attempt {Attempts}")]
     public static partial void MessageFailed(ILogger logger, Exception exception, Guid messageId, string module, int attempts);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Outbox cleanup is disabled for {Module}")]
+    public static partial void CleanupDisabled(ILogger logger, string module);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Outbox cleanup deleted {Count} processed messages in {Module}")]
+    public static partial void CleanupDeleted(ILogger logger, int count, string module);
+
+    [LoggerMessage(Level = LogLevel.Error, Message = "Outbox cleanup failed for {Module}")]
+    public static partial void CleanupFailed(ILogger logger, Exception exception, string module);
 }
