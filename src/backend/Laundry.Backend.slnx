@@ -2,7 +2,13 @@
   <Folder Name="/src/">
     <Project Path="src/Host/Host.csproj" />
   </Folder>
+  <Folder Name="/src/BuildingBlocks/">
+    <Project Path="src/BuildingBlocks/BuildingBlocks.Domain/BuildingBlocks.Domain.csproj" />
+    <Project Path="src/BuildingBlocks/BuildingBlocks.Application/BuildingBlocks.Application.csproj" />
+    <Project Path="src/BuildingBlocks/BuildingBlocks.Infrastructure/BuildingBlocks.Infrastructure.csproj" />
+  </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Laundry.Tests.Integration/Laundry.Tests.Integration.csproj" />
+    <Project Path="tests/Laundry.Tests.Unit/Laundry.Tests.Unit.csproj" />
   </Folder>
 </Solution>

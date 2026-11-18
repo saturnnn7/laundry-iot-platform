@@ -13,3 +13,8 @@ csharp_style_namespace_declarations = file_scoped:warning
 
 [*.{csproj,props,slnx,json}]
 indent_size = 2
+
+[*.cs]
+# Names required by the project conventions (Error, I*EventHandler).
+dotnet_diagnostic.CA1716.severity = none
+dotnet_diagnostic.CA1711.severity = none
