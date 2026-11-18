@@ -37,6 +37,18 @@ Health endpoints, both anonymous and plain text:
 - `GET /health/live` runs no checks and returns 200 while the process is up.
 - `GET /health` runs all checks (PostgreSQL when a connection string is set) and returns 200 or 503.
 
+## Outbox
+
+Keys of the `Outbox` section (environment form `Outbox__<Key>`):
+
+| Key | Default | Meaning |
+| --- | --- | --- |
+| `Enabled` | `true` | Runs the pollers and the cleanup job. |
+| `RetentionPeriod` | `7.00:00:00` | Processed rows older than this are deleted. Must be greater than zero. |
+| `CleanupInterval` | `01:00:00` | Time between cleanup passes, one job per module schema. Must be greater than zero. |
+
+Unprocessed and dead rows are never deleted. Rows go in batches of 1000. An invalid value stops the host at startup.
+
 ## Migrations at startup
 
 Set `Database:MigrateOnStartup=true` (`Database__MigrateOnStartup`) to apply the pending migrations of every module before the host starts listening. The default is false. A failed migration stops the startup.
