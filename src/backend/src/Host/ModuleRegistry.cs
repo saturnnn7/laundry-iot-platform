@@ -12,6 +12,10 @@ internal static class ModuleRegistry
 
         // modules:begin
         services.AddIdentityModule(connectionString);
+        services.AddResourcesModule(connectionString);
+        services.AddTelemetryModule(connectionString);
+        services.AddBookingModule(connectionString);
+        services.AddMaintenanceModule(connectionString);
         // modules:end
 
         return services;

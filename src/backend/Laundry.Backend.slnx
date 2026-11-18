@@ -9,6 +9,13 @@
     <Project Path="src/BuildingBlocks/BuildingBlocks.Infrastructure/BuildingBlocks.Infrastructure.csproj" />
   </Folder>
   <Folder Name="/src/Modules/" />
+  <Folder Name="/src/Modules/Booking/">
+    <Project Path="src/Modules/Booking/Booking.Api/Booking.Api.csproj" />
+    <Project Path="src/Modules/Booking/Booking.Application/Booking.Application.csproj" />
+    <Project Path="src/Modules/Booking/Booking.Contracts/Booking.Contracts.csproj" />
+    <Project Path="src/Modules/Booking/Booking.Domain/Booking.Domain.csproj" />
+    <Project Path="src/Modules/Booking/Booking.Infrastructure/Booking.Infrastructure.csproj" />
+  </Folder>
   <Folder Name="/src/Modules/Identity/">
     <Project Path="src/Modules/Identity/Identity.Api/Identity.Api.csproj" />
     <Project Path="src/Modules/Identity/Identity.Application/Identity.Application.csproj" />
@@ -16,7 +23,29 @@
     <Project Path="src/Modules/Identity/Identity.Domain/Identity.Domain.csproj" />
     <Project Path="src/Modules/Identity/Identity.Infrastructure/Identity.Infrastructure.csproj" />
   </Folder>
+  <Folder Name="/src/Modules/Maintenance/">
+    <Project Path="src/Modules/Maintenance/Maintenance.Api/Maintenance.Api.csproj" />
+    <Project Path="src/Modules/Maintenance/Maintenance.Application/Maintenance.Application.csproj" />
+    <Project Path="src/Modules/Maintenance/Maintenance.Contracts/Maintenance.Contracts.csproj" />
+    <Project Path="src/Modules/Maintenance/Maintenance.Domain/Maintenance.Domain.csproj" />
+    <Project Path="src/Modules/Maintenance/Maintenance.Infrastructure/Maintenance.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Resources/">
+    <Project Path="src/Modules/Resources/Resources.Api/Resources.Api.csproj" />
+    <Project Path="src/Modules/Resources/Resources.Application/Resources.Application.csproj" />
+    <Project Path="src/Modules/Resources/Resources.Contracts/Resources.Contracts.csproj" />
+    <Project Path="src/Modules/Resources/Resources.Domain/Resources.Domain.csproj" />
+    <Project Path="src/Modules/Resources/Resources.Infrastructure/Resources.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Telemetry/">
+    <Project Path="src/Modules/Telemetry/Telemetry.Api/Telemetry.Api.csproj" />
+    <Project Path="src/Modules/Telemetry/Telemetry.Application/Telemetry.Application.csproj" />
+    <Project Path="src/Modules/Telemetry/Telemetry.Contracts/Telemetry.Contracts.csproj" />
+    <Project Path="src/Modules/Telemetry/Telemetry.Domain/Telemetry.Domain.csproj" />
+    <Project Path="src/Modules/Telemetry/Telemetry.Infrastructure/Telemetry.Infrastructure.csproj" />
+  </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/Laundry.Tests.Architecture/Laundry.Tests.Architecture.csproj" />
     <Project Path="tests/Laundry.Tests.Integration/Laundry.Tests.Integration.csproj" />
     <Project Path="tests/Laundry.Tests.Unit/Laundry.Tests.Unit.csproj" />
   </Folder>

@@ -6,5 +6,9 @@
     <ProjectReference Include="..\BuildingBlocks\BuildingBlocks.Infrastructure\BuildingBlocks.Infrastructure.csproj" />
     <ProjectReference Include="..\BuildingBlocks\BuildingBlocks.Api\BuildingBlocks.Api.csproj" />
     <ProjectReference Include="..\Modules\Identity\Identity.Api\Identity.Api.csproj" />
+    <ProjectReference Include="..\Modules\Resources\Resources.Api\Resources.Api.csproj" />
+    <ProjectReference Include="..\Modules\Telemetry\Telemetry.Api\Telemetry.Api.csproj" />
+    <ProjectReference Include="..\Modules\Booking\Booking.Api\Booking.Api.csproj" />
+    <ProjectReference Include="..\Modules\Maintenance\Maintenance.Api\Maintenance.Api.csproj" />
   </ItemGroup>
 </Project>
