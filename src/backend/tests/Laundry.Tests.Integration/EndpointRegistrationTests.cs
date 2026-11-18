@@ -32,7 +32,11 @@ public class EndpointRegistrationTests(ApiFactory factory)
         services.AddEndpoints(assembly);
         services.AddEndpoints(assembly);
 
-        var descriptor = Assert.Single(services, d => d.ServiceType == typeof(IEndpoint));
+        var descriptor = Assert.Single(
+            services,
+            d => d.ServiceType == typeof(IEndpoint) && d.ImplementationType == typeof(SampleEndpoint));
         Assert.Equal(typeof(SampleEndpoint), descriptor.ImplementationType);
+        var registered = services.Where(d => d.ServiceType == typeof(IEndpoint)).Select(d => d.ImplementationType).ToList();
+        Assert.Equal(registered.Count, registered.Distinct().Count());
     }
 }

@@ -6,11 +6,19 @@ Prerequisites: .NET 10 SDK (see global.json), Docker for the Testcontainers test
 
 Build: `dotnet build`
 Test: `dotnet test`
-Run (set the connection string; the outbox can be switched off for a local check):
+Run (set the connection string and the JWT signing key, see below; the outbox can be switched off for a local check):
 
     ConnectionStrings__Default="Host=localhost;Database=laundry;Username=postgres;Password=..." \
     Outbox__Enabled=false \
     dotnet run --project src/Host --urls http://localhost:8080
+
+JWT signing key: the host does not start without `Jwt:SigningKey` (at least 32 bytes). For local runs use user secrets:
+
+    dotnet user-secrets set "Jwt:SigningKey" "<random 48+ characters>" --project src/Host
+
+or the environment variable `Jwt__SigningKey`. Never put a key in a tracked file. `Jwt:Issuer` and `Jwt:Audience` default to `laundry` and `laundry-api`.
+
+Every route requires a valid bearer token unless it is marked anonymous (`/health` and the module ping routes are). Errors are RFC 9457 problem responses with a `type` slug.
 
 Health check: `GET /health`. Module endpoints live under `/api/v1/<module>/...`.
 
