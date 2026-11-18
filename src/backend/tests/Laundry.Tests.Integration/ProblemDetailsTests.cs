@@ -74,7 +74,7 @@ public class ProblemDetailsTests(ApiFactory factory) : IClassFixture<ApiFactory>
 
     [Theory]
     [InlineData("/api/v1/sample")]
-    [InlineData("/health")]
+    [InlineData("/health/live")]
     [InlineData("/api/v1/identity/ping")]
     [InlineData("/api/v1/resources/ping")]
     [InlineData("/api/v1/telemetry/ping")]

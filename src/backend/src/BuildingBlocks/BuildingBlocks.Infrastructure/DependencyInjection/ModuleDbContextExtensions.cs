@@ -27,6 +27,8 @@ public static class ModuleDbContextExtensions
             connectionString,
             npgsql => npgsql.MigrationsHistoryTable("__EFMigrationsHistory", schema)));
 
+        services.AddSingleton(new ModuleContextDescriptor(typeof(TContext)));
+
         services.AddHostedService<OutboxProcessor<TContext>>();
 
         return services;

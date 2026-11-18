@@ -22,6 +22,27 @@ Every route requires a valid bearer token unless it is marked anonymous (`/healt
 
 Health check: `GET /health`. Module endpoints live under `/api/v1/<module>/...`.
 
+## Swagger and health
+
+Swagger UI is at `/swagger`, the OpenAPI document at `/openapi/v1.json`. Both are public. Set `Swagger:Enabled=false` (`Swagger__Enabled`) to turn them off.
+
+Health endpoints, both anonymous and plain text:
+- `GET /health/live` runs no checks and returns 200 while the process is up.
+- `GET /health` runs all checks (PostgreSQL when a connection string is set) and returns 200 or 503.
+
+## Migrations at startup
+
+Set `Database:MigrateOnStartup=true` (`Database__MigrateOnStartup`) to apply the pending migrations of every module before the host starts listening. The default is false. A failed migration stops the startup.
+
+## Docker
+
+From the repo root:
+
+    docker build -t laundry-backend:dev src/backend
+    docker run --rm -p 8080:8080       -e ConnectionStrings__Default="Host=...;Database=laundry;Username=...;Password=..."       -e Jwt__SigningKey="<random 48+ characters>"       laundry-backend:dev
+
+The container listens on port 8080 and runs as a non-root user. No secrets are baked into the image.
+
 Add a module (from the repo root): `pwsh ./tools/new-module.ps1 -Name <Name>`
 The script creates the five projects, registers them in the solution and the Host, and adds an Initial migration.
 

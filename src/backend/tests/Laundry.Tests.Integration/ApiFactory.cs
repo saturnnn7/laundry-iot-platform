@@ -24,6 +24,7 @@ public sealed class ApiFactory : WebApplicationFactory<Program>
 
         builder.UseSetting("ConnectionStrings:Default", "Host=localhost;Database=test");
         builder.UseSetting("Outbox:Enabled", "false");
+        builder.UseSetting("Database:MigrateOnStartup", "false");
         builder.UseSetting("Jwt:SigningKey", SigningKey);
         builder.UseSetting("Jwt:Issuer", Issuer);
         builder.UseSetting("Jwt:Audience", Audience);
