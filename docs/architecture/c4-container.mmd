@@ -1,0 +1,18 @@
+C4Container
+    title Container diagram - Laundry IoT Platform
+
+    Person(user, "Resident, Admin, Technician", "Use the REST API through Swagger UI, Bruno or an own client")
+    System_Ext(devices, "Device simulator", "Python; one X.509 certificate per device")
+
+    System_Boundary(vm, "AWS VM - docker compose, created by Terraform") {
+        Container(caddy, "Caddy", "Reverse proxy", "HTTPS on a DuckDNS name, certificate from Let's Encrypt")
+        Container(api, "Backend", "ASP.NET Core, .NET 10", "Modular monolith: Identity, Resources, Telemetry, Booking, Maintenance; Swagger; MQTT client")
+        ContainerDb(db, "PostgreSQL", "Database", "One schema per module; outbox tables")
+        Container(broker, "Mosquitto", "MQTT broker", "MQTTS 8883, mTLS, ACL by certificate CN")
+    }
+
+    Rel(user, caddy, "Requests", "HTTPS, JWT")
+    Rel(caddy, api, "Forwards", "HTTP")
+    Rel(api, db, "Reads and writes", "SQL")
+    BiRel(api, broker, "Telemetry, events in; commands out", "MQTTS, client certificate")
+    BiRel(devices, broker, "Telemetry, events, commands, acks", "MQTTS, mTLS")

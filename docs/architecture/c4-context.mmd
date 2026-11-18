@@ -1,0 +1,17 @@
+C4Context
+    title System Context - Laundry IoT Platform
+
+    Person(resident, "Resident", "Finds, books, holds and starts machines")
+    Person(admin, "Location Admin", "Sets up the location, reviews utilization and faults")
+    Person(tech, "Technician", "Handles fault tickets and repair ETAs")
+
+    System(platform, "Laundry IoT Platform", "REST API, MQTT broker, database; tracks machine state, bookings and faults")
+
+    System_Ext(devices, "Washer and dryer controllers", "IoT devices, simulated in this project")
+    System_Ext(google, "Google sign-in", "Optional external login")
+
+    Rel(resident, platform, "Uses", "HTTPS, JWT")
+    Rel(admin, platform, "Manages", "HTTPS, JWT")
+    Rel(tech, platform, "Resolves faults", "HTTPS, JWT")
+    BiRel(devices, platform, "Telemetry, events, commands", "MQTTS, mTLS")
+    Rel(platform, google, "Delegates login (Tier 2)", "OpenID Connect")
