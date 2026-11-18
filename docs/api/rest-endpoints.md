@@ -1,6 +1,6 @@
 # REST API v1 - endpoint list
 
-Conventions and route list for the REST API. Request and response bodies are defined during implementation inside these routes. Changing a route, a role or the meaning of an endpoint requires updating this document.
+Owner: MAIN. This is the contract for BACKEND and for the Bruno collection. Request and response bodies are defined by the BACKEND chat inside these routes; changing a route, role or meaning goes through MAIN.
 
 ## Conventions
 - Base path `/api/v1`. JSON. `Authorization: Bearer <JWT>` except where "anon".
@@ -8,7 +8,8 @@ Conventions and route list for the REST API. Request and response bodies are def
 - Errors are `ProblemDetails` (RFC 9457) with a `type` slug (table below). Lists use cursor pagination (`?cursor=&limit=`).
 - `Idempotency-Key` header is required on `POST /bookings`, `POST /holds` and `POST /sessions/{id}/start`.
 - Roles: **M** member of the Location, **R** resident, **T** technician, **A** location admin. Roles are per Location.
-- Swagger UI at `/swagger`, health at `/health`.
+- Swagger UI at `/swagger`, liveness at `/health/live`, readiness (database check) at `/health`. Both are anonymous, as are the per-module `ping` routes.
+- The ProblemDetails `type` is the bare slug from the table at the end. Unknown problem types map to 500.
 
 ## Identity
 | Method | Path | Who | Purpose |
@@ -78,5 +79,15 @@ The OutOfService flag changes only through Maintenance tickets. Device certifica
 | POST | /tickets/{ticketId}/resolve | A, T | resolve with note |
 | POST | /tickets/{ticketId}/cancel | A | cancel a false alarm |
 
-## Problem types (`type` slugs)
-`validation`, `unauthorized`, `forbidden`, `not-found`, `not-member`, `invite-invalid`, `slot-conflict`, `lead-time`, `horizon`, `machine-unavailable`, `machine-busy`, `hold-limit`, `code-invalid`, `code-expired`, `too-many-attempts`, `program-not-fit`, `command-failed`, `idempotency-conflict`.
+## Problem types (`type` slugs) and HTTP status (D-14)
+| Status | Slugs |
+|---|---|
+| 400 | `validation`, `invite-invalid`, `code-invalid`, `code-expired` |
+| 401 | `unauthorized` |
+| 403 | `forbidden`, `not-member` |
+| 404 | `not-found` |
+| 409 | `slot-conflict`, `machine-unavailable`, `machine-busy`, `hold-limit`, `program-not-fit` |
+| 422 | `lead-time`, `horizon`, `idempotency-conflict` |
+| 429 | `too-many-attempts` |
+| 502 | `command-failed` |
+| 500 | any unknown type |
