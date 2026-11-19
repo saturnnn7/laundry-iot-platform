@@ -34,6 +34,22 @@ public sealed class FailureEndpoints : IEndpoint
             Result.Failure<string>(new Error("not-in-the-table", "Unknown", "No status for this type."))
                 .ToHttpResult(value => Results.Ok(value))).AllowAnonymous();
 
+        app.MapGet("/fail/validation-fields", () =>
+        {
+            var errors = new ValidationErrors()
+                .Add("Name", "Name is required.")
+                .Add("Name", "Name is too long.")
+                .Add("startsAt", "Start must be in the future.");
+
+            return Result.Failure(errors.Build()!).ToHttpResult(() => Results.Ok());
+        }).AllowAnonymous();
+
+        app.MapGet("/fail/validation-plain", () =>
+            Result.Failure(new Error(ProblemTypes.Validation, "Validation failed", "Nothing to show."))
+                .ToHttpResult(() => Results.Ok())).AllowAnonymous();
+
+        app.MapPost("/body/echo", (BodySample body) => Results.Ok(body)).AllowAnonymous();
+
         app.MapGet("/fail/throw", () =>
         {
             throw new InvalidOperationException(ThrowMessage);
@@ -45,3 +61,5 @@ public sealed class FailureEndpoints : IEndpoint
 
     public const string ThrowMessage = "secret-failure-message-12345";
 }
+
+public sealed record BodySample(string Name, int Count);
