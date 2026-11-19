@@ -28,6 +28,8 @@ public static class ProblemDetailsExtensions
             }
         });
 
+        services.AddExceptionHandler<BadRequestExceptionHandler>();
+
         return services;
     }
 

@@ -139,6 +139,69 @@ public class ProblemDetailsTests(ApiFactory factory) : IClassFixture<ApiFactory>
     }
 
     [Fact]
+    public async Task ValidationErrorWithFieldsListsMessagesPerCamelCaseField()
+    {
+        var client = factory.CreateClientWithTestEndpoints();
+
+        var response = await client.SendAsync(Get("/api/v1/fail/validation-fields"), Ct);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var problem = await ReadProblemAsync(response);
+        Assert.Equal(400, problem.GetProperty("status").GetInt32());
+        Assert.Equal("validation", problem.GetProperty("type").GetString());
+        var errors = problem.GetProperty("errors");
+        Assert.Equal(JsonValueKind.Object, errors.ValueKind);
+        Assert.Equal(["name", "startsAt"], errors.EnumerateObject().Select(p => p.Name).Order(StringComparer.Ordinal));
+        Assert.Equal(
+            ["Name is required.", "Name is too long."],
+            errors.GetProperty("name").EnumerateArray().Select(m => m.GetString()));
+        Assert.Equal(
+            ["Start must be in the future."],
+            errors.GetProperty("startsAt").EnumerateArray().Select(m => m.GetString()));
+    }
+
+    [Fact]
+    public async Task ValidationErrorWithoutFieldsHasNoErrorsMember()
+    {
+        var client = factory.CreateClientWithTestEndpoints();
+
+        var response = await client.SendAsync(Get("/api/v1/fail/validation-plain"), Ct);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var problem = await ReadProblemAsync(response);
+        Assert.Equal("validation", problem.GetProperty("type").GetString());
+        Assert.False(problem.TryGetProperty("errors", out _));
+    }
+
+    [Theory]
+    [InlineData("{ \"name\": \"x\", \"count\": ", "application/json")]
+    [InlineData("{ \"name\": \"x\", \"count\": \"not-a-number\" }", "application/json")]
+    [InlineData("", "application/json")]
+    [InlineData("", null)]
+    public async Task BadRequestBodyReturnsValidationProblemWithoutInternalDetails(string body, string? contentType)
+    {
+        var client = factory.CreateClientWithTestEndpoints();
+        using var request = new HttpRequestMessage(HttpMethod.Post, "/api/v1/body/echo");
+        if (contentType is not null)
+        {
+            request.Content = new StringContent(body, System.Text.Encoding.UTF8, contentType);
+        }
+
+        var response = await client.SendAsync(request, Ct);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var problem = await ReadProblemAsync(response);
+        Assert.Equal("validation", problem.GetProperty("type").GetString());
+        Assert.False(string.IsNullOrEmpty(problem.GetProperty("traceId").GetString()));
+
+        var text = problem.GetRawText();
+        foreach (var forbidden in new[] { "Exception", "   at ", "System.", "Laundry.", "BodySample", "JsonReaderException", "not-a-number", "LineNumber", "Path:" })
+        {
+            Assert.DoesNotContain(forbidden, text, StringComparison.Ordinal);
+        }
+    }
+
+    [Fact]
     public void StatusTableCoversEveryProblemType()
     {
         var constants = typeof(ProblemTypes)
