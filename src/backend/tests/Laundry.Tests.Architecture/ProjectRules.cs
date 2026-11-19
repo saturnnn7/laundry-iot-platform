@@ -50,6 +50,12 @@ public static class ProjectRules
                 .Select(p => $"{project.Name}: package '{p}' is not allowed"))
             .Concat(NoFrameworks(project));
 
+    // Packages a module Infrastructure project may reference besides the building blocks.
+    private static readonly Dictionary<string, string[]> AllowedInfrastructurePackages = new(StringComparer.Ordinal)
+    {
+        ["Identity"] = ["Microsoft.AspNetCore.Identity.EntityFrameworkCore"],
+    };
+
     public static IEnumerable<string> ModuleInfrastructure(ProjectModel project, string module, IReadOnlyCollection<string> modules) =>
         References(
                 project,
@@ -63,7 +69,7 @@ public static class ProjectRules
                 ],
                 modules,
                 allowOtherContracts: true)
-            .Concat(NoPackages(project))
+            .Concat(NoPackages(project, AllowedInfrastructurePackages.GetValueOrDefault(module, [])))
             .Concat(NoFrameworks(project));
 
     public static IEnumerable<string> ModuleApi(ProjectModel project, string module, IReadOnlyCollection<string> modules) =>
@@ -144,8 +150,8 @@ public static class ProjectRules
         reference.EndsWith(".Contracts", StringComparison.Ordinal)
         && modules.Contains(reference[..^".Contracts".Length]);
 
-    private static IEnumerable<string> NoPackages(ProjectModel project) =>
-        project.Packages.Select(p => $"{project.Name}: package '{p}' is not allowed");
+    private static IEnumerable<string> NoPackages(ProjectModel project, IReadOnlyCollection<string>? allowed = null) =>
+        project.Packages.Where(p => allowed is null || !allowed.Contains(p)).Select(p => $"{project.Name}: package '{p}' is not allowed");
 
     private static IEnumerable<string> NoFrameworks(ProjectModel project) =>
         project.FrameworkReferences.Select(f => $"{project.Name}: framework reference '{f}' is not allowed");
