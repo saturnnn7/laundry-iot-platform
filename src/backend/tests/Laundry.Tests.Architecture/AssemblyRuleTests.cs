@@ -38,7 +38,7 @@ public class AssemblyRuleTests
         {
             var contexts = BackendLayout.Layers
                 .SelectMany(layer => Load(module, layer).GetTypes())
-                .Where(t => !t.IsAbstract && typeof(ModuleDbContext).IsAssignableFrom(t))
+                .Where(t => !t.IsAbstract && typeof(IModuleDbContext).IsAssignableFrom(t))
                 .Select(t => new DbContextInfo(t.Name, t.Namespace, ReadSchemaName(t)))
                 .ToList();
 

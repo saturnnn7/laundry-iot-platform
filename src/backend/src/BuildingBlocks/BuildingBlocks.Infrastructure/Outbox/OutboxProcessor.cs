@@ -13,7 +13,7 @@ public sealed class OutboxProcessor<TContext>(
     IOptions<OutboxOptions> options,
     TimeProvider timeProvider,
     ILogger<OutboxProcessor<TContext>> logger) : BackgroundService
-    where TContext : ModuleDbContext
+    where TContext : DbContext, IModuleDbContext
 {
     private static readonly string Module = typeof(TContext).Name;
 
@@ -55,7 +55,7 @@ public sealed class OutboxProcessor<TContext>(
         var context = batchScope.ServiceProvider.GetRequiredService<TContext>();
 
         var now = timeProvider.GetUtcNow();
-        var messages = await context.OutboxMessages
+        var messages = await context.Set<OutboxMessage>()
             .Where(m => m.ProcessedAtUtc == null && m.DeadAtUtc == null && m.NextAttemptAtUtc <= now)
             .OrderBy(m => m.OccurredAtUtc)
             .Take(settings.BatchSize)
