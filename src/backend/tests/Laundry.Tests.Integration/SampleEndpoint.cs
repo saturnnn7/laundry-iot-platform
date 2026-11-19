@@ -1,6 +1,8 @@
 using Laundry.BuildingBlocks.Api;
 using Laundry.BuildingBlocks.Api.Problems;
+using Laundry.BuildingBlocks.Api.Http;
 using Laundry.BuildingBlocks.Application;
+using Laundry.BuildingBlocks.Application.Paging;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -73,3 +75,10 @@ public sealed class ConnectionInfoEndpoint : IEndpoint
 }
 
 public sealed record ConnectionInfo(string Scheme, string? RemoteIp);
+
+public sealed class PageSampleEndpoint : IEndpoint
+{
+    public void MapEndpoint(IEndpointRouteBuilder app) =>
+        app.MapGet("/page-sample", ([AsParameters] PageQuery query) =>
+            query.ToRequest().ToHttpResult(request => Results.Ok(new Page<string>([], null)))).AllowAnonymous();
+}

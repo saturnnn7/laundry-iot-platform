@@ -66,6 +66,18 @@ Only the listed proxies and networks are trusted; the default loopback trust is 
     ForwardedHeaders__KnownNetworks__0=172.18.0.0/16
     ForwardedHeaders__KnownProxies__0=10.0.0.5
 
+## API conventions
+
+List endpoints use cursor pagination: `GET ...?cursor=<opaque>&limit=<n>`.
+
+- `limit` defaults to 50, minimum 1, maximum 100. A value outside that range is a `validation` problem with an error on `limit`.
+- `cursor` is an opaque string taken from `nextCursor` of the previous page. A value that cannot be decoded is a `validation` problem with an error on `cursor`. Omit it for the first page.
+- Items are sorted by a UTC timestamp, then by id, so equal timestamps page correctly. Rows added while a client walks the pages never repeat a page already returned.
+- The response is an object: `{ "items": [ ... ], "nextCursor": "..." }`. `nextCursor` is `null` on the last page.
+- The cursor holds only the sort position. Each query adds its own scoping (location, status, ...).
+
+In code: bind `[AsParameters] PageQuery`, call `ToRequest()`, then `query.ToPageAsync(request, timestamp, id, direction, projection)` on the scoped `IQueryable`.
+
 ## Migrations at startup
 
 Set `Database:MigrateOnStartup=true` (`Database__MigrateOnStartup`) to apply the pending migrations of every module before the host starts listening. The default is false. A failed migration stops the startup.
