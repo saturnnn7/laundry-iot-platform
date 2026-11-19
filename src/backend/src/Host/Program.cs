@@ -1,4 +1,5 @@
 using Laundry.BuildingBlocks.Api;
+using Laundry.BuildingBlocks.Api.Http;
 using Laundry.BuildingBlocks.Api.Problems;
 using Laundry.BuildingBlocks.Api.Security;
 using Laundry.BuildingBlocks.Infrastructure.DependencyInjection;
@@ -20,6 +21,7 @@ if (!string.IsNullOrWhiteSpace(connectionString))
         tags: null));
 }
 
+builder.Services.AddApiForwardedHeaders(builder.Configuration);
 builder.Services.AddApiProblemDetails();
 builder.Services.AddJwtBearerAuthentication(builder.Configuration);
 builder.Services.AddApiDocument();
@@ -34,6 +36,7 @@ if (app.Configuration.GetValue("Database:MigrateOnStartup", false))
 
 var swaggerEnabled = app.Configuration.GetValue("Swagger:Enabled", true);
 
+app.UseApiForwardedHeaders();
 app.UseApiProblemDetails();
 
 if (swaggerEnabled)

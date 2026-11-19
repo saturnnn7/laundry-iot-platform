@@ -63,3 +63,13 @@ public sealed class FailureEndpoints : IEndpoint
 }
 
 public sealed record BodySample(string Name, int Count);
+
+public sealed class ConnectionInfoEndpoint : IEndpoint
+{
+    public void MapEndpoint(IEndpointRouteBuilder app) =>
+        app.MapGet("/connection-info", (HttpContext context) => new ConnectionInfo(
+            context.Request.Scheme,
+            context.Connection.RemoteIpAddress?.ToString())).AllowAnonymous();
+}
+
+public sealed record ConnectionInfo(string Scheme, string? RemoteIp);
