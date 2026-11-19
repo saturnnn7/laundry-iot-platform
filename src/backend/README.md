@@ -49,6 +49,23 @@ Keys of the `Outbox` section (environment form `Outbox__<Key>`):
 
 Unprocessed and dead rows are never deleted. Rows go in batches of 1000. An invalid value stops the host at startup.
 
+## Forwarded headers
+
+Behind a reverse proxy, set the `ForwardedHeaders` section so the app sees the original client address and scheme (`X-Forwarded-For` and `X-Forwarded-Proto`). It is off by default and then the headers are ignored.
+
+| Key | Default | Meaning |
+| --- | --- | --- |
+| `Enabled` | `false` | Adds the forwarded headers middleware, first in the pipeline. |
+| `KnownProxies` | empty | List of proxy IP addresses that may set the headers. |
+| `KnownNetworks` | empty | List of CIDR networks that may set the headers, for example `172.18.0.0/16`. |
+| `ForwardLimit` | `1` | How many proxy hops to process. Must be at least 1. |
+
+Only the listed proxies and networks are trusted; the default loopback trust is removed. With `Enabled=true` at least one list must have an entry and every entry must be valid, or the host stops at startup. Lists in environment variables use an index:
+
+    ForwardedHeaders__Enabled=true
+    ForwardedHeaders__KnownNetworks__0=172.18.0.0/16
+    ForwardedHeaders__KnownProxies__0=10.0.0.5
+
 ## Migrations at startup
 
 Set `Database:MigrateOnStartup=true` (`Database__MigrateOnStartup`) to apply the pending migrations of every module before the host starts listening. The default is false. A failed migration stops the startup.
