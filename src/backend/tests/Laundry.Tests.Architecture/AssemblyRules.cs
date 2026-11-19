@@ -47,7 +47,7 @@ public static class AssemblyRules
     {
         if (contexts.Count != 1)
         {
-            yield return $"Module '{module}': expected exactly one DbContext derived from ModuleDbContext, found {contexts.Count}";
+            yield return $"Module '{module}': expected exactly one DbContext implementing IModuleDbContext, found {contexts.Count}";
             yield break;
         }
 

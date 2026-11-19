@@ -12,7 +12,7 @@ public sealed class OutboxCleanupService<TContext>(
     IOptions<OutboxOptions> options,
     TimeProvider timeProvider,
     ILogger<OutboxCleanupService<TContext>> logger) : BackgroundService
-    where TContext : ModuleDbContext
+    where TContext : DbContext, IModuleDbContext
 {
     internal const int DefaultBatchSize = 1000;
 
@@ -62,13 +62,13 @@ public sealed class OutboxCleanupService<TContext>(
 
         do
         {
-            var batch = context.OutboxMessages
+            var batch = context.Set<OutboxMessage>()
                 .Where(m => m.ProcessedAtUtc != null && m.ProcessedAtUtc < cutoff && m.DeadAtUtc == null)
                 .OrderBy(m => m.ProcessedAtUtc)
                 .Select(m => m.Id)
                 .Take(batchSize);
 
-            deleted = await context.OutboxMessages
+            deleted = await context.Set<OutboxMessage>()
                 .Where(m => batch.Contains(m.Id))
                 .ExecuteDeleteAsync(cancellationToken);
             total += deleted;

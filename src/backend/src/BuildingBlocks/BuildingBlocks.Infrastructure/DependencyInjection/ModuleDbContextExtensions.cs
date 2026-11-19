@@ -14,7 +14,7 @@ public static class ModuleDbContextExtensions
         this IServiceCollection services,
         string connectionString,
         string schema)
-        where TContext : ModuleDbContext
+        where TContext : DbContext, IModuleDbContext
     {
         ArgumentNullException.ThrowIfNull(services);
 
