@@ -44,7 +44,7 @@ public static class JwtAuthenticationExtensions
                     ValidAudience = settings.Audience,
                     ValidateLifetime = true,
                     ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(settings.SigningKey)),
+                    IssuerSigningKey = settings.CreateSigningKey(),
                     ValidAlgorithms = [SecurityAlgorithms.HmacSha256],
                     ClockSkew = TimeSpan.FromSeconds(30),
                 };

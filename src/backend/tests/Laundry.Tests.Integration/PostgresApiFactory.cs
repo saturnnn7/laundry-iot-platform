@@ -1,3 +1,4 @@
+using Laundry.BuildingBlocks.Api;
 using Laundry.BuildingBlocks.Application;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
@@ -23,6 +24,9 @@ public sealed class PostgresApiFactory(string connectionString, RecordingHandler
         base.ConfigureWebHost(builder);
 
         builder.ConfigureTestServices(services =>
-            services.AddSingleton<IIntegrationEventHandler<TestIntegrationEvent>>(handler));
+        {
+            services.AddSingleton<IIntegrationEventHandler<TestIntegrationEvent>>(handler);
+            services.AddEndpoints(typeof(SampleEndpoint).Assembly);
+        });
     }
 }
