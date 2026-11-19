@@ -125,6 +125,24 @@ public class RuleFunctionTests
     }
 
     [Fact]
+    public void OnlyIdentityInfrastructureMayUseTheIdentityStorePackage()
+    {
+        const string package = "Microsoft.AspNetCore.Identity.EntityFrameworkCore";
+
+        Assert.Empty(ProjectRules.ModuleInfrastructure(
+            Project("Identity.Infrastructure", packages: [package]), "Identity", ["Identity", "Beta"]));
+        AssertViolation(
+            ProjectRules.ModuleInfrastructure(Project("Alpha.Infrastructure", packages: [package]), "Alpha", Modules),
+            "Alpha.Infrastructure",
+            package);
+        AssertViolation(
+            ProjectRules.ModuleInfrastructure(
+                Project("Identity.Infrastructure", packages: [package, "Npgsql"]), "Identity", ["Identity", "Beta"]),
+            "Identity.Infrastructure",
+            "Npgsql");
+    }
+
+    [Fact]
     public void ApiRules()
     {
         var good = Project(
