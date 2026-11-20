@@ -1,0 +1,37 @@
+# Switches the `backend` service from the placeholder to the real image.
+#
+#   docker compose -f infra/compose/docker-compose.yml -f infra/compose/backend.compose.yml up -d
+#
+# Needs BACKEND_IMAGE and JWT_SIGNING_KEY in infra/compose/.env.
+services:
+  backend:
+    image: ${BACKEND_IMAGE:?set BACKEND_IMAGE in infra/compose/.env}
+    command: !reset []
+    environment:
+      ConnectionStrings__Default: Host=postgres;Port=5432;Database=${POSTGRES_DB:-laundry};Username=${POSTGRES_USER:-laundry};Password=${POSTGRES_PASSWORD}
+      Jwt__SigningKey: ${JWT_SIGNING_KEY:?set JWT_SIGNING_KEY in infra/compose/.env}
+      Database__MigrateOnStartup: "true"
+      Swagger__Enabled: "false"
+      ForwardedHeaders__Enabled: "true"
+      ForwardedHeaders__KnownProxies__0: 172.30.0.10
+      # MQTT connection settings: the setting names are not defined yet.
+      # Broker host is `mosquitto`, port 8883; the client certificate is
+      # certs/backend.crt and certs/backend.key (mount ./certs read-only).
+    healthcheck:
+      test:
+        - CMD
+        - bash
+        - -c
+        - >-
+          exec 3<>/dev/tcp/127.0.0.1/8080 &&
+          printf 'GET /health/live HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n' >&3 &&
+          read -r line <&3 && [[ $$line == *' 200 '* ]]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mosquitto:
+        condition: service_healthy

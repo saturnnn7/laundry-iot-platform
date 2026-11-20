@@ -1,0 +1,102 @@
+name: laundry
+
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: 10m
+    max-file: "3"
+
+services:
+  mosquitto:
+    image: eclipse-mosquitto:2.0.22
+    restart: unless-stopped
+    ports:
+      - "${MQTT_PORT:-8883}:8883"
+    # Config and certs are mounted read-only outside /mosquitto and installed at start with the
+    # owner and mode the broker expects (the key on the host stays mode 600, owned by the host user).
+    command:
+      - sh
+      - -c
+      - |
+        set -e
+        mkdir -p /mosquitto/certs
+        install -o mosquitto -g mosquitto -m 600 /src/config/mosquitto.conf /src/config/acl /mosquitto/config/
+        install -o mosquitto -g mosquitto -m 644 /src/certs/ca.crt /src/certs/server.crt /mosquitto/certs/
+        install -o mosquitto -g mosquitto -m 600 /src/certs/server.key /mosquitto/certs/
+        exec mosquitto -c /mosquitto/config/mosquitto.conf
+    volumes:
+      - ./mosquitto:/src/config:ro
+      - ./certs:/src/certs:ro
+      - mosquitto-data:/mosquitto/data
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z 127.0.0.1 8883"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    logging: *default-logging
+    networks:
+      net:
+
+  postgres:
+    image: postgres:17.6
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-laundry}
+      POSTGRES_USER: ${POSTGRES_USER:-laundry}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in infra/compose/.env}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    logging: *default-logging
+    networks:
+      net:
+
+  # Placeholder: answers 200 on every path and echoes the request headers.
+  # It has no shell, so no healthcheck; the real service defines one.
+  # To run the real backend, add backend.compose.yml (see infra/README.md).
+  backend:
+    image: traefik/whoami:v1.11.0
+    command: ["--port", "8080"]
+    restart: unless-stopped
+    logging: *default-logging
+    networks:
+      net:
+
+  caddy:
+    image: caddy:2.10.2
+    restart: unless-stopped
+    ports:
+      - "${HTTP_PORT:-8080}:80"
+      - "${HTTPS_PORT:-8443}:443"
+    environment:
+      DOMAIN: ${DOMAIN:-localhost}
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - backend
+    logging: *default-logging
+    networks:
+      net:
+        ipv4_address: 172.30.0.10
+
+networks:
+  net:
+    name: laundry_net
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.30.0.0/24
+
+volumes:
+  mosquitto-data:
+  postgres-data:
+  caddy-data:
+  caddy-config:

@@ -1,0 +1,8 @@
+# Local development only: publishes PostgreSQL on loopback so the backend can run outside Docker.
+# Not used in the cloud.
+#
+#   docker compose -f infra/compose/docker-compose.yml -f infra/compose/dev.compose.yml up -d
+services:
+  postgres:
+    ports:
+      - "127.0.0.1:5432:5432"

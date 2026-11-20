@@ -1,0 +1,14 @@
+# Device (user = certificate CN = deviceId)
+pattern write v1/+/%u/telemetry
+pattern write v1/+/%u/event
+pattern write v1/+/%u/status
+pattern write v1/+/%u/cmd/ack
+pattern read v1/+/%u/cmd
+
+# Backend
+user backend
+topic read v1/+/+/telemetry
+topic read v1/+/+/event
+topic read v1/+/+/status
+topic read v1/+/+/cmd/ack
+topic write v1/+/+/cmd
