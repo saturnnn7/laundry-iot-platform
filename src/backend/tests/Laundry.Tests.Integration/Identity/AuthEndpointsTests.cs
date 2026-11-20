@@ -49,7 +49,7 @@ public sealed class AuthEndpointsTests(PostgresFixture fixture)
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         var body = await ReadJsonAsync(response);
         Assert.Equal("validation", body.GetProperty("type").GetString());
-        Assert.True(body.GetProperty("errors").TryGetProperty("email", out _));
+        Assert.Equal(1, body.GetProperty("errors").GetProperty("email").GetArrayLength());
     }
 
     [Fact]
@@ -86,6 +86,7 @@ public sealed class AuthEndpointsTests(PostgresFixture fixture)
             Ct);
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal("The request could not be read.", (await ReadJsonAsync(response)).GetProperty("detail").GetString());
     }
 
     [Fact]
@@ -171,6 +172,44 @@ public sealed class AuthEndpointsTests(PostgresFixture fixture)
     }
 
     [Fact]
+    public async Task MeReturnsTheProfileWithEmptyMemberships()
+    {
+        var email = NewEmail();
+        var registered = await ReadJsonAsync(await RegisterAsync(email, accountType: "Admin"));
+        var token = (await ReadJsonAsync(await LoginAsync(email, Password))).GetProperty("accessToken").GetString();
+
+        var response = await GetMeAsync(token);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = await ReadJsonAsync(response);
+        Assert.Equal(registered.GetProperty("id").GetString(), body.GetProperty("id").GetString());
+        Assert.Equal(email, body.GetProperty("email").GetString());
+        Assert.Equal("Jane Doe", body.GetProperty("displayName").GetString());
+        Assert.Equal("Admin", body.GetProperty("accountType").GetString());
+        var memberships = body.GetProperty("memberships");
+        Assert.Equal(JsonValueKind.Array, memberships.ValueKind);
+        Assert.Equal(0, memberships.GetArrayLength());
+    }
+
+    [Fact]
+    public async Task MeWithoutTokenGives401()
+    {
+        await AssertUnauthorizedAsync(await GetMeAsync(null));
+    }
+
+    [Fact]
+    public async Task MeWithExpiredTokenGives401()
+    {
+        await AssertUnauthorizedAsync(await GetMeAsync(IssueToken(ApiFactory.SigningKey, DateTimeOffset.UtcNow.AddHours(-2))));
+    }
+
+    [Fact]
+    public async Task MeWithValidTokenForUnknownUserGives401()
+    {
+        await AssertUnauthorizedAsync(await GetMeAsync(IssueToken(ApiFactory.SigningKey, DateTimeOffset.UtcNow)));
+    }
+
+    [Fact]
     public async Task OpenApiDescribesBothRoutes()
     {
         var document = await Client.GetStringAsync("/openapi/v1.json", Ct);
@@ -211,9 +250,13 @@ public sealed class AuthEndpointsTests(PostgresFixture fixture)
     private Task<HttpResponseMessage> LoginAsync(string email, string password) =>
         Client.PostAsJsonAsync("/api/v1/auth/login", new { email, password }, Ct);
 
-    private Task<HttpResponseMessage> GetSecureAsync(string? token)
+    private Task<HttpResponseMessage> GetMeAsync(string? token) => GetAsync("/api/v1/me", token);
+
+    private Task<HttpResponseMessage> GetSecureAsync(string? token) => GetAsync("/api/v1/secure-sample", token);
+
+    private Task<HttpResponseMessage> GetAsync(string path, string? token)
     {
-        var request = new HttpRequestMessage(HttpMethod.Get, "/api/v1/secure-sample");
+        var request = new HttpRequestMessage(HttpMethod.Get, path);
         if (token is not null)
         {
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);

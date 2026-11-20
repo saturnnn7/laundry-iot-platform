@@ -125,13 +125,21 @@ internal sealed partial class UserAccounts(
     {
         var fields = new ValidationErrors();
 
+        // DuplicateEmail and DuplicateUserName both map to the same message; report it once.
+        var duplicateReported = false;
+
         foreach (var error in errors)
         {
             switch (error.Code)
             {
                 case nameof(IdentityErrorDescriber.DuplicateEmail):
                 case nameof(IdentityErrorDescriber.DuplicateUserName):
-                    fields.Add("email", "This email is already registered.");
+                    if (!duplicateReported)
+                    {
+                        fields.Add("email", "This email is already registered.");
+                        duplicateReported = true;
+                    }
+
                     break;
                 case nameof(IdentityErrorDescriber.InvalidEmail):
                 case nameof(IdentityErrorDescriber.InvalidUserName):

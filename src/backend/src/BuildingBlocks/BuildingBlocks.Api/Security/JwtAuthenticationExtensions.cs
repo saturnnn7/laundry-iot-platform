@@ -55,6 +55,9 @@ public static class JwtAuthenticationExtensions
                 .RequireAuthenticatedUser()
                 .Build());
 
+        services.AddHttpContextAccessor();
+        services.AddScoped<ICurrentUser, HttpContextCurrentUser>();
+
         services.AddSingleton<IAuthorizationMiddlewareResultHandler, NotFoundAwareAuthorizationHandler>();
 
         return services;

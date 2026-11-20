@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace Laundry.BuildingBlocks.Api.Problems;
 
-// Malformed JSON, a wrong value type and a missing body surface as BadHttpRequestException.
+// Malformed JSON, a wrong value type, a missing body and bad query values surface as BadHttpRequestException.
 // The response is a plain validation problem: the exception text can name internal types.
 internal sealed class BadRequestExceptionHandler(IProblemDetailsService problemDetails) : IExceptionHandler
 {
@@ -25,7 +25,7 @@ internal sealed class BadRequestExceptionHandler(IProblemDetailsService problemD
                 Status = StatusCodes.Status400BadRequest,
                 Type = ProblemTypes.Validation,
                 Title = "Validation failed",
-                Detail = "The request body is missing or malformed.",
+                Detail = "The request could not be read.",
             },
         });
     }

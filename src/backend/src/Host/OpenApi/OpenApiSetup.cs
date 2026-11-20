@@ -32,7 +32,8 @@ internal static class OpenApiSetup
             {
                 var metadata = context.Description.ActionDescriptor.EndpointMetadata;
 
-                if (metadata.OfType<IAuthorizeData>().Any() && !metadata.OfType<IAllowAnonymous>().Any())
+                // Every route is protected by the fallback policy unless it allows anonymous access.
+                if (!metadata.OfType<IAllowAnonymous>().Any())
                 {
                     operation.Security ??= [];
                     operation.Security.Add(new OpenApiSecurityRequirement
