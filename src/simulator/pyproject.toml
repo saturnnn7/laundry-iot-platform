@@ -1,0 +1,41 @@
+[project]
+name = "laundry-sim"
+version = "0.1.0"
+description = "Device simulator for the laundry IoT platform"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "paho-mqtt>=2",
+    "pydantic>=2",
+    "pyyaml",
+    "typer",
+]
+
+[project.scripts]
+sim = "laundry_sim.cli:app"
+
+[dependency-groups]
+dev = [
+    "jsonschema",
+    "pytest",
+    "rfc3339-validator",
+    "ruff",
+]
+
+[build-system]
+requires = ["uv_build>=0.9,<0.14"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = "laundry_sim"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-W error"

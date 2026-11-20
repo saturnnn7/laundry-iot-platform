@@ -1,0 +1,19 @@
+# Example simulator config. Relative paths are resolved against this file's directory.
+broker:
+  # host and port can be overridden with --host/--port or SIM_BROKER_HOST/SIM_BROKER_PORT
+  host: localhost
+  # port defaults to 8883 (1883 with --insecure-local)
+  tls: true
+
+defaults:
+  locationId: 3f2b8c1e-5a47-4d1e-9c0b-7a6d2e4f8b10
+  kind: washer
+  firmware: 0.1.0
+
+devices:
+  - deviceId: sim-0001
+    locationId: 3f2b8c1e-5a47-4d1e-9c0b-7a6d2e4f8b10
+    kind: washer
+  - deviceId: sim-0002
+    locationId: 3f2b8c1e-5a47-4d1e-9c0b-7a6d2e4f8b10
+    kind: dryer
