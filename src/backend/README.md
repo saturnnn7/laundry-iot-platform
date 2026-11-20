@@ -29,6 +29,46 @@ Every route requires a valid bearer token unless it is marked anonymous (`/healt
 
 Health check: `GET /health`. Module endpoints live under `/api/v1/<module>/...`.
 
+## Identity quickstart
+
+Needs Docker and PowerShell 7. Run these from `src/backend`.
+
+Start PostgreSQL with a generated password (host port 5433, so a local PostgreSQL on 5432 is not in the way):
+
+    $dbPassword = [Convert]::ToBase64String([Security.Cryptography.RandomNumberGenerator]::GetBytes(18)) -replace '[+/=]', 'x'
+    docker run -d --name laundry-pg -e POSTGRES_PASSWORD=$dbPassword -e POSTGRES_DB=laundry -p 5433:5432 postgres:17-alpine
+    docker exec laundry-pg pg_isready -U postgres
+
+Run the Host in this window. The signing key is generated for this session only (48 random bytes, at least 32 are required):
+
+    $env:ConnectionStrings__Default = "Host=localhost;Port=5433;Database=laundry;Username=postgres;Password=$dbPassword"
+    $env:Jwt__SigningKey = [Convert]::ToBase64String([Security.Cryptography.RandomNumberGenerator]::GetBytes(48))
+    $env:Database__MigrateOnStartup = 'true'
+    dotnet run --project src/Host --urls http://localhost:8080
+
+In a second window, register, log in and call `/me`:
+
+    $api = 'http://localhost:8080/api/v1'
+    $email = 'jane@example.com'
+    $password = 'a long enough password'
+
+    Invoke-RestMethod -Method Post -Uri "$api/auth/register" -ContentType 'application/json' `
+        -Body (@{ email = $email; password = $password; displayName = 'Jane Doe'; accountType = 'Resident' } | ConvertTo-Json)
+
+    $login = Invoke-RestMethod -Method Post -Uri "$api/auth/login" -ContentType 'application/json' `
+        -Body (@{ email = $email; password = $password } | ConvertTo-Json)
+    $login.expiresAtUtc
+
+    Invoke-RestMethod -Uri "$api/me" -Headers @{ Authorization = "Bearer $($login.accessToken)" }
+
+Register answers 201 with `id`, `email`, `displayName`, `accountType`. Login answers 200 with `accessToken`, `tokenType` and `expiresAtUtc`. `/me` answers 200 with the profile and `memberships` (an empty array until locations exist; each item will have `locationId`, `locationName` and `role`). A wrong password or an unknown email answers 401, and five wrong passwords lock the account for five minutes (429).
+
+Stop the Host with Ctrl+C, then remove the container (its data goes with it):
+
+    docker rm -f laundry-pg
+
+Swagger: open `http://localhost:8080/swagger`, run `POST /api/v1/auth/login` with Try it out, copy the `accessToken` from the response, press Authorize, paste the token (without the word Bearer) and confirm. Then call `GET /api/v1/me`. The token is kept across page reloads. Routes with a padlock need the token.
+
 ## Swagger and health
 
 Swagger UI is at `/swagger`, the OpenAPI document at `/openapi/v1.json`. Both are public. Set `Swagger:Enabled=false` (`Swagger__Enabled`) to turn them off.

@@ -41,7 +41,11 @@ app.UseApiProblemDetails();
 
 if (swaggerEnabled)
 {
-    app.UseSwaggerUI(options => options.SwaggerEndpoint("/openapi/v1.json", "Laundry IoT Platform API v1"));
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint("/openapi/v1.json", "Laundry IoT Platform API v1");
+        options.ConfigObject.PersistAuthorization = true;
+    });
 }
 
 app.UseAuthentication();

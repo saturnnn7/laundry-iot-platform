@@ -27,6 +27,26 @@ public class OpenApiTests(ApiFactory factory) : IClassFixture<ApiFactory>
         Assert.Equal("bearer", scheme.GetProperty("scheme").GetString());
     }
 
+    [Theory]
+    [InlineData("/api/v1/me", "get", true)]
+    [InlineData("/api/v1/auth/login", "post", false)]
+    [InlineData("/api/v1/auth/register", "post", false)]
+    [InlineData("/api/v1/identity/ping", "get", false)]
+    public async Task OnlyProtectedOperationsCarryTheBearerRequirement(string path, string method, bool protectedRoute)
+    {
+        var client = factory.CreateClient();
+
+        using var json = JsonDocument.Parse(await client.GetStringAsync("/openapi/v1.json", Ct));
+        var operation = json.RootElement.GetProperty("paths").GetProperty(path).GetProperty(method);
+
+        var hasSecurity = operation.TryGetProperty("security", out var security) && security.GetArrayLength() > 0;
+        Assert.Equal(protectedRoute, hasSecurity);
+        if (protectedRoute)
+        {
+            Assert.True(security[0].TryGetProperty("Bearer", out _));
+        }
+    }
+
     [Fact]
     public async Task SwaggerUiIsPublic()
     {
