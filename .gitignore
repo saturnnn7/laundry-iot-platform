@@ -8,6 +8,10 @@
 *.pfx
 secrets/
 certs/
+!tools/certs/
+infra/pki/
+infra/compose/certs/
+infra/compose/.env
 appsettings.*.local.json
 *.user
 
@@ -31,6 +35,7 @@ cdk.out/
 .terraform/
 *.tfstate
 *.tfstate.*
+*.tfvars
 
 # Editors / OS
 .vscode/*
