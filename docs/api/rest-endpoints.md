@@ -5,9 +5,10 @@ Owner: MAIN. This is the contract for BACKEND and for the Bruno collection. Requ
 ## Conventions
 - Base path `/api/v1`. JSON. `Authorization: Bearer <JWT>` except where "anon".
 - IDs are GUIDs. Timestamps UTC ISO-8601. Money is an integer in minor units plus the Location currency.
-- Errors are `ProblemDetails` (RFC 9457) with a `type` slug (table below). Lists use cursor pagination (`?cursor=&limit=`).
+- Errors are `ProblemDetails` (RFC 9457) with a `type` slug (table below). Lists use cursor pagination (`?cursor=&limit=`); a list response is `{ items, nextCursor }`, the cursor is opaque, `limit` defaults to 50 and ranges from 1 to 100. Validation errors carry an `errors` object (field name to messages, camelCase).
 - `Idempotency-Key` header is required on `POST /bookings`, `POST /holds` and `POST /sessions/{id}/start`.
 - Roles: **M** member of the Location, **R** resident, **T** technician, **A** location admin. Roles are per Location.
+- Login returns `accessToken`, `tokenType` (`Bearer`) and `expiresAtUtc`, with `Cache-Control: no-store`. Passwords are 10 to 128 characters. Five failed logins lock the account for 5 minutes (429 `too-many-attempts`).
 - Swagger UI at `/swagger`, liveness at `/health/live`, readiness (database check) at `/health`. Both are anonymous, as are the per-module `ping` routes.
 - The ProblemDetails `type` is the bare slug from the table at the end. Unknown problem types map to 500.
 
