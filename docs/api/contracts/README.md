@@ -1,6 +1,6 @@
 # MQTT contracts v1
 
-Changes to this contract must be reflected in the JSON Schemas, the simulator and the backend. JSON Schema draft 2020-12.
+Owner: MAIN. Changes only through a decision in the decision log. JSON Schema draft 2020-12.
 
 ## Topics
 
@@ -58,3 +58,31 @@ Backend delivery: ack timeout 10 s. `unlock`, `start`, `stop`, `lock`, `setRepor
 ## Machine cycle state (derived by Telemetry)
 
 `phase` maps one to one: `idle`, `running`, `finished`, `fault`. `Unknown` is derived from `status` offline or no telemetry for 3 report intervals.
+
+## Device behavior rules (v1, D-19)
+
+1. `unlock` sets `locked` to false. It stays false until `lock`, `start` (sets it true) or the end of the cycle (`finished` sets it false).
+2. Ack reasons use this vocabulary: `expired`, `busy`, `door_open`, `fault`, `invalid`.
+   - `start` while running, or while finished with the door still closed: rejected `busy`.
+   - `start` or `lock` with the door open: rejected `door_open`.
+   - `unlock` while running: rejected `busy`.
+   - `stop` while idle: `ok`.
+   - `stop` during a fault: rejected `fault`. The backend treats this as expected, not as a failure.
+3. A fault is cleared on the device only; there is no reset command. The phase returns to `idle` when it is cleared.
+4. Besides the interval ticks, the device sends telemetry immediately on every phase change and after every executed command. `seq` continues normally.
+5. `bootId` changes only when the device process starts. Reconnecting keeps `bootId` and `seq`; nothing is generated while offline, so `seq` has no gaps.
+6. `remainingSec` and `start.minutes` are in device time (simulated seconds and minutes when a time scale is used). Report intervals are wall-clock. Time scaling exists only for demos.
+7. A command with no readable `commandId` is dropped and logged, with no ack. A readable `commandId` with a payload that breaks the schema is acked `rejected` with reason `invalid`.
+8. The dedupe cache (last 50 `commandId` values) may live in memory only; `expiresAt` bounds any replay.
+9. `stop` while running or finished ends the cycle (phase `idle`) and sets `locked` to false.
+10. `start` is checked in this order: `fault`, then `busy`, then `door_open`.
+11. `unlock` is allowed in `idle`, `finished` and `fault`. `showCode` with a `validUntil` already in the past is acked `ok` and shows nothing.
+12. Time is frozen during a fault. Clearing the fault goes to `idle` and drops program and step. `finished` reports `remainingSec` 0 and keeps `programId`; `idle` omits both.
+13. The door opens by itself 30 device seconds after `finished` (configurable), so the backend sees `finished` for at least that long.
+14. Metric units: `vibration` is a unitless index (0 to about 4), `currentA` is amperes, `temperatureC` is degrees Celsius. The backend does not threshold on metrics in v1; a fault comes only from phase `fault`.
+
+Backend mapping of ack reasons to API problems: `busy` -> `machine-busy`; `fault` -> `machine-unavailable`; `door_open` -> `command-failed` with a detail asking to close the door; `expired` and `invalid` -> `command-failed`.
+
+## Simulator identities (D-20)
+
+Generated devices use ids `sim-0001`, `sim-0002`, and so on, with certificate CN equal to the id. Certificate directory layout: `<dir>/ca.crt`, `<dir>/<deviceId>.crt`, `<dir>/<deviceId>.key`. The simulator takes `--cert-dir` and `--location-id`.
